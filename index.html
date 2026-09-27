@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>קול קורא! תחרות ה-AI של מחלקת Dielectric</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-dark:#060b22;
+    --navy:#0b1440;
+    --blue:#1e6fe0;
+    --blue-light:#4aa8ff;
+    --purple:#7b3ff2;
+    --lime:#cdf24a;
+    --gold:#f2c94c;
+    --silver:#c9d0da;
+    --bronze:#d98a4e;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    font-family:"Heebo", Arial, sans-serif;
+    background:var(--navy-dark);
+    color:#0b1440;
+  }
+
+  /* ---------- Header ---------- */
+  .header{
+    position:relative;
+    overflow:hidden;
+    background:radial-gradient(circle at 50% 0%, #0f1a4f 0%, var(--navy-dark) 70%);
+    padding:48px 20px 90px;
+    text-align:center;
+    isolation:isolate;
+  }
+
+  .header::before, .header::after{
+    content:"";
+    position:absolute;
+    top:0;
+    width:60%;
+    height:100%;
+    z-index:-1;
+    opacity:.55;
+    filter:blur(2px);
+  }
+  .header::before{
+    left:-10%;
+    background:
+      repeating-linear-gradient(115deg,
+        rgba(74,168,255,.35) 0px, rgba(74,168,255,.35) 3px,
+        transparent 3px, transparent 40px);
+  }
+  .header::after{
+    right:-10%;
+    background:
+      repeating-linear-gradient(65deg,
+        rgba(123,63,242,.35) 0px, rgba(123,63,242,.35) 3px,
+        transparent 3px, transparent 40px);
+  }
+
+  .dots{
+    position:absolute;
+    width:120px;
+    height:80px;
+    background-image: radial-gradient(rgba(255,255,255,.35) 1.5px, transparent 1.5px);
+    background-size:14px 14px;
+  }
+  .dots.top-right{ top:20px; right:20px; }
+
+  .intel-logo{
+    font-size:1.4rem;
+    font-weight:700;
+    color:#fff;
+    letter-spacing:.5px;
+  }
+  .intel-logo .dot{ color:var(--blue-light); }
+
+  .brand-title{
+    font-size:2.6rem;
+    font-weight:900;
+    margin:6px 0 4px;
+    background:linear-gradient(90deg,#4aa8ff,#7b3ff2);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    letter-spacing:1px;
+  }
+
+  .brand-sub{
+    color:#dfe6ff;
+    font-size:1rem;
+    margin:0;
+  }
+
+  .megaphone{
+    position:absolute;
+    left:20px;
+    top:30px;
+    width:100px;
+    height:85px;
+  }
+
+  .poster-image{ display:block; width:100%; height:100%; object-fit:contain; }
+
+  @media(max-width:480px){
+    .megaphone{ left:8px; top:8px; width:56px; height:48px; }
+  }
+
+  /* ---------- Main card ---------- */
+  .card{
+    position:relative;
+    max-width:760px;
+    margin:-60px auto 0;
+    background:#f4f5f8;
+    border-radius:36px;
+    padding:44px 30px 10px;
+    text-align:center;
+    box-shadow:0 30px 60px rgba(0,0,0,.35);
+  }
+
+  .badge{
+    display:inline-block;
+    background:var(--lime);
+    color:#0b1440;
+    font-weight:800;
+    font-size:1.6rem;
+    padding:8px 30px;
+    border-radius:8px;
+    transform:rotate(-2deg);
+    box-shadow:4px 4px 0 rgba(0,0,0,.08);
+  }
+
+  h1.headline{
+    font-size:2.5rem;
+    font-weight:900;
+    color:var(--navy);
+    margin:22px 0 14px;
+    line-height:1.25;
+  }
+
+  .lead{
+    font-size:1.1rem;
+    color:#2b2f45;
+    margin:0 0 26px;
+  }
+  .lead .vs{ color:var(--blue); font-weight:800; }
+  .lead .gh{ color:var(--purple); font-weight:800; }
+
+  .tools-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:22px;
+    margin-bottom:34px;
+    flex-wrap:wrap;
+  }
+  .tool-pill{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+  .tool-icon{
+    width:78px;
+    height:78px;
+    border-radius:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:2.4rem;
+  }
+  .tool-icon.vscode{ background:transparent; width:auto; height:78px; }
+  .tool-icon.copilot{ background:transparent; width:auto; height:78px; }
+  .tool-icon img{ height:100%; width:auto; object-fit:contain; }
+  .tool-pill span.label{
+    font-weight:700;
+    color:#fff;
+    background:var(--navy);
+    padding:4px 16px;
+    border-radius:20px;
+    font-size:.9rem;
+  }
+  .bolt{ width:42px; height:58px; flex-shrink:0; }
+
+  .features{
+    display:flex;
+    justify-content:center;
+    gap:0;
+    border-top:1px solid #d7dae2;
+    padding:22px 0;
+  }
+  .feature{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    padding:0 10px;
+    border-left:1px solid #d7dae2;
+  }
+  .feature:last-child{ border-left:none; }
+  .feature .icon{ display:block; width:100%; max-width:92px; height:64px; }
+  .feature span{ font-weight:700; color:var(--navy); font-size:.95rem; }
+
+  /* ---------- Showcase banner ---------- */
+  .showcase{
+    max-width:760px;
+    margin:26px auto 0;
+    background:var(--navy);
+    border-radius:20px;
+    padding:20px 26px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    text-align:right;
+  }
+  .showcase .bulb{ width:58px; height:60px; flex-shrink:0; }
+  .showcase h2{
+    color:var(--lime);
+    font-size:1.3rem;
+    margin:0 0 4px;
+  }
+  .showcase p{ color:#dfe6ff; margin:0; font-size:.95rem; }
+
+  /* ---------- Prizes ---------- */
+  .prizes{
+    max-width:760px;
+    margin:22px auto 0;
+    background:var(--navy);
+    border:2px solid var(--navy);
+    border-radius:20px;
+    padding:22px 20px;
+    text-align:center;
+  }
+  .prizes h3{
+    color:#fff;
+    font-size:1.2rem;
+    margin:0 0 18px;
+  }
+  .prizes h3 .hl{ color:var(--lime); }
+  .medals{
+    display:flex;
+    justify-content:center;
+    gap:36px;
+    flex-wrap:wrap;
+  }
+  .medal{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .medal .poster-image{ width:76px; height:74px; }
+  .medal span.place{ font-weight:700; color:#fff; font-size:.9rem; }
+  .trophy{ width:114px; height:120px; margin:0 auto 16px; }
+
+  .tagline{
+    max-width:760px;
+    margin:26px auto 0;
+    background:var(--navy);
+    border-radius:20px;
+    padding:16px;
+    text-align:center;
+    color:#fff;
+    font-weight:700;
+  }
+  .tagline .hl{ color:var(--lime); }
+
+  /* ---------- Registration form ---------- */
+  .register{
+    max-width:520px;
+    margin:40px auto;
+    background:#fff;
+    border-radius:24px;
+    padding:32px 28px;
+    text-align:center;
+    box-shadow:0 20px 40px rgba(0,0,0,.3);
+  }
+  .register h2{
+    color:var(--navy);
+    font-size:1.5rem;
+    margin:0 0 6px;
+  }
+  .register p.hint{
+    color:#555b70;
+    margin:0 0 22px;
+    font-size:.95rem;
+  }
+  .register label{
+    display:block;
+    text-align:right;
+    font-weight:700;
+    color:var(--navy);
+    margin-bottom:8px;
+    font-size:.95rem;
+  }
+  .register input[type="text"]{
+    width:100%;
+    padding:14px 16px;
+    font-size:1.05rem;
+    border:2px solid #d7dae2;
+    border-radius:12px;
+    font-family:inherit;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .register input[type="text"]:focus{
+    outline:none;
+    border-color:var(--blue);
+    box-shadow:0 0 0 3px rgba(30,111,224,.15);
+  }
+  .error-msg{
+    color:#c0392b;
+    font-size:.85rem;
+    text-align:right;
+    min-height:20px;
+    margin-top:6px;
+  }
+  .submit-btn{
+    margin-top:18px;
+    width:100%;
+    padding:15px;
+    font-size:1.1rem;
+    font-weight:800;
+    color:#0b1440;
+    background:var(--lime);
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .submit-btn:hover{ transform:translateY(-2px); box-shadow:0 8px 18px rgba(205,242,74,.4); }
+  .submit-btn:active{ transform:translateY(0); }
+
+  .success-box{
+    display:none;
+    margin-top:18px;
+    background:#e9f9e0;
+    border:2px solid #7bc96f;
+    color:#2c6b1f;
+    border-radius:12px;
+    padding:16px;
+    font-weight:700;
+  }
+  .success-box.show{ display:block; }
+
+  .counter{
+    margin-top:16px;
+    font-size:.85rem;
+    color:#8891a3;
+  }
+
+  footer{
+    text-align:center;
+    color:#7f8aa8;
+    font-size:.8rem;
+    padding:10px 20px 40px;
+  }
+</style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="dots top-right"></div>
+    <div class="megaphone"><img class="poster-image" src="poster-megaphone.png" alt=""></div>
+    <div class="intel-logo">intel<span class="dot">.</span></div>
+    <div class="brand-title">Dielectric</div>
+    <p class="brand-sub">מחלקת Dielectric קוראת לכל עובדי המחלקה</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <span class="badge">קול קורא!</span>
+      <h1 class="headline">בואו להציג את הפיתוח שלכם!</h1>
+      <p class="lead">שתפו בפיתוחים שביצעתם באמצעות <span class="vs">VS Code</span> &amp; <span class="gh">GitHub Copilot</span></p>
+
+      <div class="tools-row">
+        <div class="tool-pill">
+          <div class="tool-icon vscode"><img src="VS CODE.png" alt="VS Code"></div>
+          <span class="label">VS Code</span>
+        </div>
+        <div class="bolt"><img class="poster-image" src="poster-bolt.png" alt=""></div>
+        <div class="tool-pill">
+          <div class="tool-icon copilot"><img src="GitHub-Copilot-logo-1040x650.png" alt="GitHub Copilot"></div>
+          <span class="label">GitHub Copilot</span>
+        </div>
+      </div>
+
+      <div class="features">
+        <div class="feature"><span class="icon"><img class="poster-image" src="poster-clock.png" alt=""></span><span>יעיל יותר</span></div>
+        <div class="feature"><span class="icon"><img class="poster-image" src="poster-target.png" alt=""></span><span>מדויק יותר</span></div>
+        <div class="feature"><span class="icon"><img class="poster-image" src="poster-rocket.png" alt=""></span><span>מהיר יותר</span></div>
+      </div>
+    </section>
+
+    <section class="showcase">
+      <div class="bulb"><img class="poster-image" src="poster-lightbulb.png" alt=""></div>
+      <div>
+        <h2>בואו להראות מה עשיתם!</h2>
+        <p>הציגו את הפיתוח, שתפו את התהליך, והראו את ההשפעה.</p>
+      </div>
+    </section>
+
+    <section class="prizes">
+      <h3>פרסים <span class="hl">מובטחים</span> לשלושת המקומות הראשונים</h3>
+      <div class="trophy"><img class="poster-image" src="poster-trophy.png" alt="גביע"></div>
+      <div class="medals">
+        <div class="medal bronze">
+          <img class="poster-image" src="poster-medal-bronze.png" alt="">
+          <span class="place">מקום שלישי</span>
+        </div>
+        <div class="medal silver">
+          <img class="poster-image" src="poster-medal-silver.png" alt="">
+          <span class="place">מקום שני</span>
+        </div>
+        <div class="medal gold">
+          <img class="poster-image" src="poster-medal-gold.png" alt="">
+          <span class="place">מקום ראשון</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="tagline">החדשנות שלכם. <span class="hl">ההצלחה של כולנו.</span></div>
+
+    <section class="register">
+      <h2>הרשמה לתחרות</h2>
+      <p class="hint">מלאו את שמכם המלא כדי להירשם לתחרות ה-AI של המחלקה</p>
+      <form id="registerForm" novalidate>
+        <label for="fullName">שם מלא</label>
+        <input type="text" id="fullName" name="fullName" placeholder="לדוגמה: ישראל ישראלי" autocomplete="name" />
+        <div class="error-msg" id="errorMsg"></div>
+        <button type="submit" class="submit-btn">הרשם עכשיו</button>
+      </form>
+      <div class="success-box" id="successBox">✅ נרשמת בהצלחה לתחרות! בהצלחה 🚀</div>
+      <div class="counter" id="counter"></div>
+    </section>
+  </main>
+
+  <footer>תחרות ה-AI &middot; מחלקת Dielectric &middot; Intel</footer>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'dielectricAiCompetitionRegistrations';
+  const form = document.getElementById('registerForm');
+  const nameInput = document.getElementById('fullName');
+  const errorMsg = document.getElementById('errorMsg');
+  const successBox = document.getElementById('successBox');
+  const counterEl = document.getElementById('counter');
+
+  function getRegistrations(){
+    try{
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    }catch(e){
+      return [];
+    }
+  }
+
+  function updateCounter(){
+    const count = getRegistrations().length;
+    counterEl.textContent = count > 0 ? `נרשמו עד כה ${count} מועמדים` : '';
+  }
+
+  updateCounter();
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const name = nameInput.value.trim();
+
+    if(name.length < 2){
+      errorMsg.textContent = 'נא להזין שם מלא תקין';
+      successBox.classList.remove('show');
+      return;
+    }
+
+    errorMsg.textContent = '';
+    const registrations = getRegistrations();
+    registrations.push({ name, date: new Date().toISOString() });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(registrations));
+
+    successBox.classList.add('show');
+    form.reset();
+    updateCounter();
+  });
+
+  nameInput.addEventListener('input', function(){
+    if(errorMsg.textContent) errorMsg.textContent = '';
+  });
+})();
+</script>
+
+</body>
+</html>
