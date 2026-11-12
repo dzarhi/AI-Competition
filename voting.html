@@ -319,7 +319,7 @@
     .vote-actions {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 12px;
       margin-top: 28px;
       padding-top: 20px;
@@ -389,7 +389,6 @@
       .voting-topline { align-items: flex-start; }
       .weight-pill { font-size: .74rem; }
       .vote-actions { align-items: stretch; }
-      .vote-actions .secondary-button,
       .vote-actions .primary-button { min-height: 46px; padding: 9px 13px; font-size: .9rem; }
       .action-end { flex: 1; }
       .action-end .primary-button { flex: 1; }
@@ -492,7 +491,6 @@
         </div>
 
         <div class="vote-actions">
-          <button class="secondary-button" id="previous-button" type="button"><span class="button-arrow" aria-hidden="true">→</span> הקודם</button>
           <div class="action-end">
             <button class="primary-button" id="next-button" type="button" disabled>שמרו והמשיכו <span class="button-arrow" aria-hidden="true">←</span></button>
           </div>
@@ -536,7 +534,6 @@
     const entryError = document.getElementById("entry-error");
     const ratingGrid = document.getElementById("rating-grid");
     const nextButton = document.getElementById("next-button");
-    const previousButton = document.getElementById("previous-button");
     let voter = null;
     let currentIndex = 0;
     let votesByVoter = readVotes();
@@ -635,18 +632,10 @@
         ratingGrid.append(button);
       }
 
-      previousButton.disabled = currentIndex === 0;
       nextButton.disabled = !savedRating;
       const isLastProject = currentIndex === projects.length - 1;
       nextButton.innerHTML = isLastProject ? 'סיום ההצבעה <span class="button-arrow" aria-hidden="true">←</span>' : 'שמרו והמשיכו <span class="button-arrow" aria-hidden="true">←</span>';
     }
-
-    previousButton.addEventListener("click", () => {
-      if (currentIndex > 0) {
-        currentIndex -= 1;
-        renderProject();
-      }
-    });
 
     nextButton.addEventListener("click", () => {
       if (!voter.votes[projects[currentIndex].id]) return;
