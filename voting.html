@@ -350,6 +350,19 @@
     .receipt-row span:first-child { color: var(--muted); }
     .receipt-row strong { color: var(--navy); }
 
+    .results-panel { margin-top: 16px; }
+    .results-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+    .results-header h2 { margin: 0 0 4px; color: var(--navy); font-size: 1.45rem; font-weight: 900; }
+    .results-header p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .results-status { min-height: 24px; margin: 12px 0; color: var(--muted); font-size: .88rem; }
+    .results-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--white); }
+    .results-table { width: 100%; min-width: 700px; border-collapse: collapse; text-align: right; }
+    .results-table th, .results-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .results-table th { color: var(--navy); background: #e8ecf5; font-size: .86rem; font-weight: 900; }
+    .results-table td { color: #424a60; font-variant-numeric: tabular-nums; }
+    .results-table tbody tr:last-child td { border-bottom: 0; }
+    .results-table td:first-child { color: var(--navy); font-weight: 800; }
+
     .small-link {
       padding: 8px 10px;
       border: 0;
@@ -388,6 +401,8 @@
       .project-description { margin: 17px 0 22px; }
       .voting-topline { align-items: flex-start; }
       .weight-pill { font-size: .74rem; }
+      .results-header { align-items: stretch; flex-direction: column; }
+      .results-header .secondary-button { align-self: flex-start; }
       .vote-actions { align-items: stretch; }
       .vote-actions .primary-button { min-height: 46px; padding: 9px 13px; font-size: .9rem; }
       .action-end { flex: 1; }
@@ -419,7 +434,7 @@
   <main>
     <aside class="demo-notice" role="note">
       <span class="notice-mark" aria-hidden="true">!</span>
-      <div><strong>הצבעת דוגמה:</strong> שמות המציגים הועתקו מרשימת ההרשמה ב-SharePoint ואינם מתעדכנים אוטומטית. הציונים נשמרים בדפדפן הנוכחי בלבד ואינם נאספים לתוצאה משותפת.</div>
+      <div id="connection-status"><strong>מתחבר למאגר ההצבעות...</strong></div>
     </aside>
 
     <section id="entry-panel" class="panel" aria-labelledby="entry-title">
@@ -450,11 +465,10 @@
             <div class="field full judge-field" id="judge-field" hidden>
               <label class="field-label" for="judge-code">קוד שופט/ת</label>
               <input class="text-input" id="judge-code" name="judgeCode" type="password" autocomplete="off" placeholder="הזינו את הקוד שקיבלתם">
-              <p class="helper">קוד הדגמה: <strong>DIELECTRIC-2026</strong></p>
             </div>
           </div>
           <p class="form-error" id="entry-error" role="alert" aria-live="polite"></p>
-          <button class="primary-button entry-submit" type="submit">כניסה להצבעה <span aria-hidden="true">←</span></button>
+          <button class="primary-button entry-submit" id="entry-submit" type="submit" disabled>כניסה להצבעה <span aria-hidden="true">←</span></button>
         </form>
       </div>
     </section>
@@ -488,6 +502,7 @@
           <div class="rating-ends"><span>1 · לשיפור</span><span>10 · מצוין</span></div>
           <div class="rating-grid" id="rating-grid" role="group" aria-label="בחירת ציון מ-1 עד 10"></div>
           <p class="repeat-note">אפשר להשתמש באותו ציון גם לפרויקטים אחרים.</p>
+          <p class="form-error" id="vote-error" role="alert" aria-live="polite"></p>
         </div>
 
         <div class="vote-actions">
@@ -507,23 +522,43 @@
         <button class="secondary-button" id="return-button" type="button">חזרה לעמוד הכניסה</button>
       </div>
     </section>
-    <p class="footer-note">תחרות ה-AI · מחלקת Dielectric · <a href="index.html">לעמוד התחרות</a></p>
+
+    <section id="results-panel" class="panel results-panel" aria-labelledby="results-title">
+      <div class="panel-inner">
+        <div class="results-header">
+          <div>
+            <h2 id="results-title">תוצאות ההצבעה</h2>
+            <p>ממוצע הקהל 40% · ממוצע השופטים 60%</p>
+          </div>
+          <button class="secondary-button" id="refresh-results" type="button">רענון תוצאות</button>
+        </div>
+        <p class="results-status" id="results-status" role="status" aria-live="polite">טוען תוצאות...</p>
+        <div class="results-table-wrap">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th scope="col">מציג/ה</th>
+                <th scope="col">הצבעות קהל</th>
+                <th scope="col">ממוצע קהל</th>
+                <th scope="col">הצבעות שופטים</th>
+                <th scope="col">ממוצע שופטים</th>
+                <th scope="col">ציון משוקלל</th>
+              </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <p class="footer-note">תחרות ה-AI · מחלקת Dielectric · <a href="#results-panel">תוצאות</a> · <a href="index.html">לעמוד התחרות</a></p>
   </main>
 
+  <script src="supabase-config.js"></script>
   <script>
-    const DEMO_JUDGE_CODE = "DIELECTRIC-2026";
     const JUDGE_WEIGHT_PERCENT = 60;
     const AUDIENCE_WEIGHT_PERCENT = 40;
-    const STORAGE_KEY = "dielectric-voting-demo-v1";
-    const projects = [
-      { id: "project-01", title: "Roy yarhi", description: "הציון מתייחס לפרויקט שהוצג בתחרות." },
-      { id: "project-02", title: "Victoria Elkind", description: "הציון מתייחס לפרויקט שהוצג בתחרות." },
-      { id: "project-03", title: "Yaniv Afingar", description: "הציון מתייחס לפרויקט שהוצג בתחרות." },
-      { id: "project-04", title: "Dor Yosef", description: "הציון מתייחס לפרויקט שהוצג בתחרות." },
-      { id: "project-05", title: "Elias Khoury", description: "הציון מתייחס לפרויקט שהוצג בתחרות." },
-      { id: "project-06", title: "Roshdy Abu Alteef", description: "הציון מתייחס לפרויקט שהוצג בתחרות." },
-      { id: "project-07", title: "אלכס רויף", description: "הציון מתייחס לפרויקט שהוצג בתחרות." }
-    ];
+    const supabaseConfig = window.VOTING_SUPABASE_CONFIG || {};
+    let projects = [];
 
     const entryPanel = document.getElementById("entry-panel");
     const votePanel = document.getElementById("vote-panel");
@@ -534,33 +569,96 @@
     const entryError = document.getElementById("entry-error");
     const ratingGrid = document.getElementById("rating-grid");
     const nextButton = document.getElementById("next-button");
+    const entrySubmit = document.getElementById("entry-submit");
+    const connectionStatus = document.getElementById("connection-status");
+    const resultsBody = document.getElementById("results-body");
+    const resultsStatus = document.getElementById("results-status");
+    const refreshResultsButton = document.getElementById("refresh-results");
     let voter = null;
     let currentIndex = 0;
-    let votesByVoter = readVotes();
+    let selectedScore = null;
 
-    function readVotes() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-      } catch {
-        return {};
+    async function callSupabaseRpc(functionName, payload = {}) {
+      const baseUrl = (supabaseConfig.url || "").replace(/\/$/, "");
+      const publishableKey = supabaseConfig.publishableKey || "";
+      if (!baseUrl.startsWith("https://") || !publishableKey || publishableKey.includes("YOUR_")) {
+        throw new Error("Supabase עדיין לא הוגדר. יש להוסיף Project URL ו-publishable key לקובץ התצורה.");
       }
+
+      const response = await fetch(`${baseUrl}/rest/v1/rpc/${functionName}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: publishableKey
+        },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.message || result.error || `שגיאת שרת (${response.status}).`);
+      }
+      return result;
     }
 
-    function writeVotes() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(votesByVoter));
+    function showEntryError(message) {
+      entryError.textContent = message;
     }
 
     function selectedRole() {
       return entryForm.querySelector('input[name="role"]:checked').value;
     }
 
-    function voterKey(name, role) {
-      return `${role}:${name.trim().toLocaleLowerCase("he")}`;
+    async function loadPresenters() {
+      try {
+        const result = await callSupabaseRpc("list_presenters");
+        projects = result.map((presenter) => ({
+          id: presenter.id,
+          title: presenter.name,
+          description: "הציון מתייחס לפרויקט שהוצג בתחרות."
+        }));
+        if (projects.length === 0) {
+          throw new Error("לא נמצאו מציגים במאגר.");
+        }
+        connectionStatus.textContent = `מחובר למאגר. נטענו ${projects.length} מציגים.`;
+        entrySubmit.disabled = false;
+      } catch (error) {
+        connectionStatus.textContent = error.message;
+        entrySubmit.disabled = true;
+      }
     }
 
-    function showEntryError(message) {
-      entryError.textContent = message;
+    async function loadResults() {
+      refreshResultsButton.disabled = true;
+      resultsStatus.textContent = "טוען תוצאות...";
+      try {
+        const results = await callSupabaseRpc("get_results");
+        resultsBody.replaceChildren();
+        results.forEach((result) => {
+          const row = document.createElement("tr");
+          const values = [
+            result.presenter_name,
+            String(result.audience_count),
+            result.audience_average === null ? "—" : Number(result.audience_average).toFixed(2),
+            String(result.judge_count),
+            result.judge_average === null ? "—" : Number(result.judge_average).toFixed(2),
+            result.weighted_score === null ? "—" : Number(result.weighted_score).toFixed(2)
+          ];
+          values.forEach((value) => {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.append(cell);
+          });
+          resultsBody.append(row);
+        });
+        resultsStatus.textContent = results.length ? "התוצאות עודכנו." : "אין מציגים להצגה.";
+      } catch (error) {
+        resultsStatus.textContent = `לא ניתן לטעון תוצאות: ${error.message}`;
+      } finally {
+        refreshResultsButton.disabled = false;
+      }
     }
+
+    refreshResultsButton.addEventListener("click", loadResults);
 
     document.querySelectorAll('input[name="role"]').forEach((input) => {
       input.addEventListener("change", () => {
@@ -571,7 +669,7 @@
       });
     });
 
-    entryForm.addEventListener("submit", (event) => {
+    entryForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const name = document.getElementById("voter-name").value.trim();
       const role = selectedRole();
@@ -580,36 +678,49 @@
         document.getElementById("voter-name").focus();
         return;
       }
-      if (role === "judge" && judgeCodeInput.value !== DEMO_JUDGE_CODE) {
-        showEntryError("קוד השופט/ת אינו נכון.");
-        judgeCodeInput.focus();
-        return;
-      }
 
-      const key = voterKey(name, role);
-      voter = votesByVoter[key] || { name, role, votes: {} };
-      voter.name = name;
-      voter.role = role;
-      voter.votes ||= {};
-      currentIndex = Math.min(voter.nextIndex || 0, projects.length - 1);
+      entrySubmit.disabled = true;
       showEntryError("");
-      entryPanel.hidden = true;
-      completePanel.hidden = true;
-      votePanel.hidden = false;
-      renderProject();
+      try {
+        const judgeCode = role === "judge" ? judgeCodeInput.value.trim() : "";
+        const previous = await callSupabaseRpc("get_my_votes", {
+          p_voter_name: name,
+          p_voter_role: role,
+          p_judge_code: judgeCode
+        });
+        voter = {
+          name,
+          role,
+          judgeCode,
+          votes: Object.fromEntries((previous || []).map((vote) => [vote.presenter_id, vote.score]))
+        };
+        currentIndex = projects.findIndex((project) => !voter.votes[project.id]);
+        if (currentIndex < 0) {
+          showCompletion();
+          return;
+        }
+        selectedScore = null;
+        entryPanel.hidden = true;
+        completePanel.hidden = true;
+        votePanel.hidden = false;
+        renderProject();
+      } catch (error) {
+        showEntryError(error.message);
+        entrySubmit.disabled = false;
+      }
     });
 
     function renderProject() {
       const project = projects[currentIndex];
-      const savedRating = voter.votes[project.id] || null;
       document.getElementById("voter-display").textContent = voter.name;
       document.getElementById("avatar-mark").textContent = voter.name.slice(0, 1);
       document.getElementById("role-display").textContent = voter.role === "judge" ? "חבר/ת צוות השופטים" : "קהל";
       document.getElementById("weight-display").textContent = `שופטים ${JUDGE_WEIGHT_PERCENT}% · קהל ${AUDIENCE_WEIGHT_PERCENT}%`;
       document.getElementById("progress-label").textContent = `מציג/ה ${currentIndex + 1} מתוך ${projects.length}`;
-      document.getElementById("progress-count").textContent = `${Object.keys(voter.votes).length} דורגו`;
+      document.getElementById("progress-count").textContent = `${Object.keys(voter.votes).length} נשמרו`;
       document.getElementById("progress-fill").style.width = `${(Object.keys(voter.votes).length / projects.length) * 100}%`;
-      document.getElementById("project-kicker").textContent = `מציג/ה ${String(currentIndex + 1).padStart(2, "0")}`;
+      const presenterNumber = currentIndex + 1;
+      document.getElementById("project-kicker").textContent = `מציג/ה ${presenterNumber < 10 ? `0${presenterNumber}` : presenterNumber}`;
       document.getElementById("project-title").textContent = project.title;
       document.getElementById("project-description").textContent = project.description;
       ratingGrid.replaceChildren();
@@ -620,40 +731,57 @@
         button.type = "button";
         button.textContent = String(score);
         button.setAttribute("aria-label", `ציון ${score}`);
-        button.setAttribute("aria-pressed", String(savedRating === score));
+        button.setAttribute("aria-pressed", String(selectedScore === score));
         button.addEventListener("click", () => {
-          voter.votes[project.id] = score;
-          voter.nextIndex = currentIndex;
-          votesByVoter[voterKey(voter.name, voter.role)] = voter;
-          writeVotes();
-          renderProject();
-          ratingGrid.querySelector(`[aria-label="ציון ${score}"]`)?.focus();
+          selectedScore = score;
+          ratingGrid.querySelectorAll(".rating-button").forEach((candidate) => {
+            candidate.setAttribute("aria-pressed", String(candidate === button));
+          });
+          nextButton.disabled = false;
+          document.getElementById("vote-error").textContent = "";
+          button.focus();
         });
         ratingGrid.append(button);
       }
 
-      nextButton.disabled = !savedRating;
-      const isLastProject = currentIndex === projects.length - 1;
-      nextButton.innerHTML = isLastProject ? 'סיום ההצבעה <span class="button-arrow" aria-hidden="true">←</span>' : 'שמרו והמשיכו <span class="button-arrow" aria-hidden="true">←</span>';
+      nextButton.disabled = selectedScore === null;
+      nextButton.textContent = currentIndex === projects.length - 1 ? "סיום ההצבעה ←" : "שמרו והמשיכו ←";
     }
 
-    nextButton.addEventListener("click", () => {
-      if (!voter.votes[projects[currentIndex].id]) return;
-      if (currentIndex < projects.length - 1) {
-        currentIndex += 1;
-        voter.nextIndex = currentIndex;
-        votesByVoter[voterKey(voter.name, voter.role)] = voter;
-        writeVotes();
-        renderProject();
-        return;
+    nextButton.addEventListener("click", async () => {
+      if (selectedScore === null) return;
+      const project = projects[currentIndex];
+      const voteError = document.getElementById("vote-error");
+      nextButton.disabled = true;
+      nextButton.textContent = "שומר...";
+      voteError.textContent = "";
+      try {
+        await callSupabaseRpc("submit_vote", {
+          p_voter_name: voter.name,
+          p_voter_role: voter.role,
+          p_judge_code: voter.judgeCode,
+          p_presenter_id: project.id,
+          p_score: selectedScore
+        });
+        voter.votes[project.id] = selectedScore;
+        selectedScore = null;
+        if (currentIndex < projects.length - 1) {
+          currentIndex += 1;
+          renderProject();
+          return;
+        }
+        showCompletion();
+      } catch (error) {
+        voteError.textContent = error.message;
+        nextButton.disabled = false;
+        nextButton.textContent = currentIndex === projects.length - 1 ? "סיום ההצבעה ←" : "שמרו והמשיכו ←";
       }
-      showCompletion();
     });
 
     function showCompletion() {
       votePanel.hidden = true;
       completePanel.hidden = false;
-      document.getElementById("complete-message").textContent = `הדירוג של ${voter.name} נשמר בדפדפן הזה. תודה שהקדשת זמן לכל ${projects.length} המציגים.`;
+      document.getElementById("complete-message").textContent = `הדירוג של ${voter.name} נשמר ב-Supabase. תודה שהקדשת זמן לכל ${projects.length} המציגים.`;
       const receipt = document.getElementById("receipt");
       receipt.replaceChildren();
       const summary = [
@@ -676,15 +804,21 @@
     document.getElementById("return-button").addEventListener("click", () => {
       voter = null;
       currentIndex = 0;
+      selectedScore = null;
       entryForm.reset();
       judgeField.hidden = true;
       judgeCodeInput.required = false;
       judgeCodeInput.value = "";
       entryError.textContent = "";
       completePanel.hidden = true;
+      votePanel.hidden = true;
       entryPanel.hidden = false;
+      entrySubmit.disabled = !projects.length;
       document.getElementById("voter-name").focus();
     });
+
+    loadPresenters();
+    loadResults();
   </script>
 </body>
 </html>
