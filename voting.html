@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#060b22">
+  <title>הצבעה | תחרות ה-AI של Dielectric</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy-dark: #060b22;
+      --navy: #0b1440;
+      --blue: #1e6fe0;
+      --blue-light: #4aa8ff;
+      --purple: #7b3ff2;
+      --lime: #cdf24a;
+      --paper: #f4f5f8;
+      --ink: #101832;
+      --muted: #596176;
+      --line: #dce0e8;
+      --white: #fff;
+      --danger: #a8263f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background: var(--navy-dark);
+      font-family: "Heebo", Arial, sans-serif;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    [hidden] { display: none !important; }
+
+    .site-header {
+      position: relative;
+      overflow: hidden;
+      padding: 22px 24px 74px;
+      color: var(--white);
+      text-align: center;
+      background: radial-gradient(ellipse at 50% 0%, #14245d 0%, var(--navy-dark) 72%);
+      isolation: isolate;
+    }
+
+    .site-header::before,
+    .site-header::after {
+      position: absolute;
+      top: 0;
+      z-index: -1;
+      width: 46%;
+      height: 100%;
+      content: "";
+      opacity: .38;
+      background: repeating-linear-gradient(115deg, rgba(74,168,255,.55) 0 2px, transparent 2px 34px);
+    }
+
+    .site-header::before { right: -12%; }
+    .site-header::after {
+      left: -12%;
+      transform: scaleX(-1);
+      background-image: repeating-linear-gradient(65deg, rgba(123,63,242,.5) 0 2px, transparent 2px 34px);
+    }
+
+    .topbar {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1120px;
+      margin: 0 auto;
+      text-align: right;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .intel-wordmark { font-size: 1.25rem; font-weight: 800; }
+    .intel-wordmark span { color: var(--blue-light); }
+    .brand-divider { width: 1px; height: 28px; background: rgba(255,255,255,.3); }
+    .brand-name { color: #dfe6ff; font-weight: 700; }
+    .competition-tag {
+      padding: 7px 12px;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px;
+      color: #e8edff;
+      font-size: .82rem;
+    }
+
+    .hero {
+      max-width: 760px;
+      margin: 48px auto 0;
+      animation: rise-in .55s ease-out both;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--lime);
+      font-size: .9rem;
+      font-weight: 800;
+    }
+
+    .eyebrow::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--lime);
+      content: "";
+      box-shadow: 0 0 16px rgba(205,242,74,.65);
+    }
+
+    h1 {
+      margin: 10px 0 6px;
+      color: var(--white);
+      font-size: 3.25rem;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+
+    .hero p { margin: 0; color: #dfe6ff; font-size: 1.05rem; }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 32px, 920px);
+      margin: -44px auto 0;
+      padding-bottom: 36px;
+    }
+
+    .demo-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 14px 18px;
+      border: 1px solid rgba(205,242,74,.35);
+      border-radius: 12px;
+      color: #eff8cf;
+      background: #16213c;
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    .demo-notice strong { color: var(--lime); }
+    .notice-mark { flex: 0 0 auto; color: var(--lime); font-weight: 900; }
+
+    .panel {
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: 24px;
+      background: var(--paper);
+      box-shadow: 0 26px 56px rgba(0,0,0,.32);
+      animation: rise-in .65s .08s ease-out both;
+    }
+
+    .panel-inner { padding: clamp(22px, 5vw, 44px); }
+
+    .panel-heading { margin-bottom: 26px; text-align: center; }
+    .panel-heading h2 { margin: 0 0 6px; color: var(--navy); font-size: 1.65rem; font-weight: 900; }
+    .panel-heading p { margin: 0; color: var(--muted); }
+
+    .field-label { display: block; margin-bottom: 8px; color: var(--navy); font-weight: 800; }
+    .text-input {
+      width: 100%;
+      min-height: 52px;
+      padding: 12px 14px;
+      border: 1px solid #c8ceda;
+      border-radius: 10px;
+      outline: none;
+      color: var(--ink);
+      background: var(--white);
+      text-align: right;
+      transition: border-color .16s, box-shadow .16s;
+    }
+
+    .text-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30,111,224,.15); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+
+    .role-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 5px;
+      border: 1px solid #d5d9e3;
+      border-radius: 12px;
+      background: #e8eaf0;
+    }
+
+    .role-option { position: relative; }
+    .role-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .role-option span {
+      display: flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 9px;
+      color: #454c60;
+      font-weight: 800;
+      cursor: pointer;
+      transition: color .16s, background .16s, box-shadow .16s;
+    }
+
+    .role-option input:checked + span { color: var(--navy); background: var(--white); box-shadow: 0 2px 8px rgba(17,24,49,.12); }
+    .role-option input:focus-visible + span { outline: 3px solid var(--blue); outline-offset: 2px; }
+    .role-symbol { color: var(--blue); font-size: 1.2rem; line-height: 1; }
+
+    .judge-field { margin-top: 18px; }
+    .helper { margin: 7px 0 0; color: var(--muted); font-size: .84rem; }
+    .form-error { min-height: 24px; margin: 10px 0 0; color: var(--danger); font-size: .9rem; font-weight: 700; }
+
+    .primary-button,
+    .secondary-button {
+      display: inline-flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 11px 20px;
+      border: 0;
+      border-radius: 10px;
+      font-weight: 900;
+      transition: transform .16s, box-shadow .16s, background .16s;
+    }
+
+    .primary-button { color: var(--navy); background: var(--lime); box-shadow: 0 5px 0 #9cb831; }
+    .primary-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 #9cb831, 0 12px 24px rgba(33,50,5,.16); }
+    .primary-button:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #9cb831; }
+    .primary-button:disabled { cursor: not-allowed; opacity: .5; box-shadow: none; }
+    .secondary-button { color: var(--navy); border: 1px solid #c9cfdb; background: var(--white); }
+    .secondary-button:hover { background: #e8ecf5; }
+    .entry-submit { width: 100%; margin-top: 8px; }
+
+    .voting-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .voter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--navy);
+      font-weight: 800;
+    }
+
+    .avatar-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--navy);
+      background: var(--lime);
+      font-weight: 900;
+    }
+
+    .voter-meta { min-width: 0; }
+    .voter-meta small { display: block; overflow: hidden; color: var(--muted); font-size: .78rem; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+    .weight-pill { flex: 0 0 auto; padding: 6px 10px; border-radius: 999px; color: #184a92; background: #e2edff; font-size: .82rem; font-weight: 800; }
+
+    .progress-block { margin: 24px 0 28px; }
+    .progress-copy { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; color: var(--muted); font-size: .88rem; font-weight: 700; }
+    .progress-track { height: 8px; overflow: hidden; border-radius: 99px; background: #dfe3eb; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--purple)); transition: width .3s ease; }
+
+    .project-heading { display: flex; align-items: center; gap: 16px; }
+    .project-icon {
+      display: grid;
+      width: 68px;
+      height: 68px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 18px;
+      background: var(--navy);
+    }
+
+    .project-icon img { width: 44px; height: 44px; object-fit: contain; }
+    .project-kicker { margin: 0 0 3px; color: var(--blue); font-size: .85rem; font-weight: 900; }
+    .project-title { margin: 0; color: var(--navy); font-size: 1.85rem; font-weight: 900; line-height: 1.25; }
+    .project-description { max-width: 680px; margin: 22px 0 28px; color: #424a60; font-size: 1rem; line-height: 1.75; }
+
+    .rating-title { margin: 0 0 12px; color: var(--navy); font-size: 1rem; font-weight: 900; }
+    .rating-ends { display: flex; justify-content: space-between; margin-bottom: 9px; color: var(--muted); font-size: .78rem; }
+    .rating-grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; }
+    .rating-button {
+      display: grid;
+      min-width: 0;
+      aspect-ratio: 1;
+      place-items: center;
+      border: 1px solid #c8ceda;
+      border-radius: 10px;
+      color: var(--navy);
+      background: var(--white);
+      font-size: 1.05rem;
+      font-weight: 900;
+      transition: color .14s, background .14s, border-color .14s, transform .14s;
+    }
+
+    .rating-button:hover { border-color: var(--blue); transform: translateY(-2px); }
+    .rating-button[aria-pressed="true"] { border-color: var(--navy); color: var(--white); background: var(--navy); box-shadow: 0 4px 10px rgba(11,20,64,.2); }
+    .rating-button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+    .repeat-note { margin: 10px 0 0; color: var(--muted); font-size: .82rem; }
+
+    .vote-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .action-end { display: flex; gap: 10px; }
+    .button-arrow { font-size: 1.15rem; line-height: 1; }
+
+    .complete-content { padding: 44px 24px; text-align: center; }
+    .complete-icon {
+      display: grid;
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 18px;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--navy);
+      background: var(--lime);
+      font-size: 2.3rem;
+      font-weight: 900;
+    }
+
+    .complete-content h2 { margin: 0 0 8px; color: var(--navy); font-size: 1.8rem; font-weight: 900; }
+    .complete-content p { max-width: 560px; margin: 0 auto 22px; color: var(--muted); line-height: 1.65; }
+    .receipt { max-width: 560px; margin: 0 auto 24px; border-top: 1px solid var(--line); text-align: right; }
+    .receipt-row { display: flex; justify-content: space-between; gap: 18px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+    .receipt-row span:first-child { color: var(--muted); }
+    .receipt-row strong { color: var(--navy); }
+
+    .small-link {
+      padding: 8px 10px;
+      border: 0;
+      color: #e0e6ff;
+      background: transparent;
+      font-size: .85rem;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .small-link:hover { color: var(--lime); }
+    .footer-note { margin: 16px 0 0; color: #8d98b4; font-size: .8rem; text-align: center; }
+    .footer-note a { color: #b7c8ff; }
+
+    @keyframes rise-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 620px) {
+      .site-header { padding: 18px 16px 68px; }
+      .competition-tag { max-width: 132px; font-size: .72rem; }
+      .hero { margin-top: 42px; }
+      .hero p { font-size: .95rem; }
+      h1 { font-size: 2rem; }
+      main { width: min(100% - 22px, 920px); margin-top: -38px; }
+      .demo-notice { padding: 12px 13px; font-size: .84rem; }
+      .panel { border-radius: 18px; }
+      .form-grid { grid-template-columns: 1fr; gap: 16px; }
+      .field.full { grid-column: auto; }
+      .rating-grid { gap: 5px; }
+      .rating-button { border-radius: 8px; font-size: .95rem; }
+      .project-icon { width: 56px; height: 56px; border-radius: 15px; }
+      .project-icon img { width: 36px; height: 36px; }
+      .project-title { font-size: 1.35rem; }
+      .project-description { margin: 17px 0 22px; }
+      .voting-topline { align-items: flex-start; }
+      .weight-pill { font-size: .74rem; }
+      .vote-actions { align-items: stretch; }
+      .vote-actions .secondary-button,
+      .vote-actions .primary-button { min-height: 46px; padding: 9px 13px; font-size: .9rem; }
+      .action-end { flex: 1; }
+      .action-end .primary-button { flex: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="topbar">
+      <div class="brand" aria-label="Intel Dielectric">
+        <span class="intel-wordmark">intel<span>.</span></span>
+        <span class="brand-divider" aria-hidden="true"></span>
+        <span class="brand-name">Dielectric</span>
+      </div>
+      <span class="competition-tag">תחרות ה-AI · הצבעה</span>
+    </div>
+    <div class="hero">
+      <span class="eyebrow">הבחירה בידיים שלכם</span>
+      <h1>נותנים במה לחדשנות</h1>
+      <p>מדרגים מציג/ה אחד/ת בכל פעם. כל ציון מותר לשימוש חוזר.</p>
+    </div>
+  </header>
+
+  <main>
+    <aside class="demo-notice" role="note">
+      <span class="notice-mark" aria-hidden="true">!</span>
+      <div><strong>אב־טיפוס מקומי:</strong> כל שמות המציגים בעמוד הזה הם שמות דמה. ההצבעות נשמרות בדפדפן הנוכחי בלבד; להצבעה משותפת נדרש חיבור מאובטח ל-SharePoint.</div>
+    </aside>
+
+    <section id="entry-panel" class="panel" aria-labelledby="entry-title">
+      <div class="panel-inner">
+        <div class="panel-heading">
+          <h2 id="entry-title">מתחילים להצביע</h2>
+          <p>בחרו את סוג המשתתף והזינו את שמכם</p>
+        </div>
+        <form id="entry-form" novalidate>
+          <div class="form-grid">
+            <div class="field full">
+              <span class="field-label" id="role-label">אני מצביע/ה בתור</span>
+              <div class="role-switch" role="radiogroup" aria-labelledby="role-label">
+                <label class="role-option">
+                  <input type="radio" name="role" value="audience" checked>
+                  <span><b class="role-symbol" aria-hidden="true">◉</b> קהל</span>
+                </label>
+                <label class="role-option">
+                  <input type="radio" name="role" value="judge">
+                  <span><b class="role-symbol" aria-hidden="true">✦</b> שופט/ת</span>
+                </label>
+              </div>
+            </div>
+            <div class="field full">
+              <label class="field-label" for="voter-name">שם מלא</label>
+              <input class="text-input" id="voter-name" name="name" type="text" autocomplete="name" maxlength="80" placeholder="איך לקרוא לך?" required>
+            </div>
+            <div class="field full judge-field" id="judge-field" hidden>
+              <label class="field-label" for="judge-code">קוד שופט/ת</label>
+              <input class="text-input" id="judge-code" name="judgeCode" type="password" autocomplete="off" placeholder="הזינו את הקוד שקיבלתם">
+              <p class="helper">קוד הדגמה: <strong>DIELECTRIC-2026</strong></p>
+            </div>
+          </div>
+          <p class="form-error" id="entry-error" role="alert" aria-live="polite"></p>
+          <button class="primary-button entry-submit" type="submit">כניסה להצבעה <span aria-hidden="true">←</span></button>
+        </form>
+      </div>
+    </section>
+
+    <section id="vote-panel" class="panel" aria-labelledby="project-title" hidden>
+      <div class="panel-inner">
+        <div class="voting-topline">
+          <div class="voter-chip">
+            <span class="avatar-mark" id="avatar-mark" aria-hidden="true"></span>
+            <span class="voter-meta"><span id="voter-display"></span><small id="role-display"></small></span>
+          </div>
+          <span class="weight-pill" id="weight-display"></span>
+        </div>
+
+        <div class="progress-block" aria-label="התקדמות ההצבעה">
+          <div class="progress-copy"><span id="progress-label"></span><span id="progress-count"></span></div>
+          <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        </div>
+
+        <div class="project-heading">
+          <div class="project-icon"><img src="poster-target.png" alt=""></div>
+          <div>
+            <p class="project-kicker" id="project-kicker"></p>
+            <h2 class="project-title" id="project-title"></h2>
+          </div>
+        </div>
+        <p class="project-description" id="project-description"></p>
+
+        <div>
+          <p class="rating-title">מה הציון שלכם לפרויקט?</p>
+          <div class="rating-ends"><span>1 · לשיפור</span><span>10 · מצוין</span></div>
+          <div class="rating-grid" id="rating-grid" role="group" aria-label="בחירת ציון מ-1 עד 10"></div>
+          <p class="repeat-note">אפשר להשתמש באותו ציון גם לפרויקטים אחרים.</p>
+        </div>
+
+        <div class="vote-actions">
+          <button class="secondary-button" id="previous-button" type="button"><span class="button-arrow" aria-hidden="true">→</span> הקודם</button>
+          <div class="action-end">
+            <button class="primary-button" id="next-button" type="button" disabled>שמרו והמשיכו <span class="button-arrow" aria-hidden="true">←</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="complete-panel" class="panel" aria-labelledby="complete-title" hidden>
+      <div class="complete-content">
+        <div class="complete-icon" aria-hidden="true">✓</div>
+        <h2 id="complete-title">תודה על ההצבעה!</h2>
+        <p id="complete-message"></p>
+        <div class="receipt" id="receipt"></div>
+        <button class="secondary-button" id="return-button" type="button">חזרה לעמוד הכניסה</button>
+      </div>
+    </section>
+    <p class="footer-note">תחרות ה-AI · מחלקת Dielectric · <a href="index.html">לעמוד התחרות</a></p>
+  </main>
+
+  <script>
+    const DEMO_JUDGE_CODE = "DIELECTRIC-2026";
+    const JUDGE_WEIGHT_PERCENT = 60;
+    const AUDIENCE_WEIGHT_PERCENT = 40;
+    const STORAGE_KEY = "dielectric-voting-demo-v1";
+    const projects = [
+      { id: "project-01", title: "מציג/ה לדוגמה 01", description: "הציון מתייחס לפרויקט דמה שהוצג בתחרות." },
+      { id: "project-02", title: "מציג/ה לדוגמה 02", description: "הציון מתייחס לפרויקט דמה שהוצג בתחרות." },
+      { id: "project-03", title: "מציג/ה לדוגמה 03", description: "הציון מתייחס לפרויקט דמה שהוצג בתחרות." },
+      { id: "project-04", title: "מציג/ה לדוגמה 04", description: "הציון מתייחס לפרויקט דמה שהוצג בתחרות." },
+      { id: "project-05", title: "מציג/ה לדוגמה 05", description: "הציון מתייחס לפרויקט דמה שהוצג בתחרות." },
+      { id: "project-06", title: "מציג/ה לדוגמה 06", description: "הציון מתייחס לפרויקט דמה שהוצג בתחרות." },
+      { id: "project-07", title: "מציג/ה לדוגמה 07", description: "הציון מתייחס לפרויקט דמה שהוצג בתחרות." }
+    ];
+
+    const entryPanel = document.getElementById("entry-panel");
+    const votePanel = document.getElementById("vote-panel");
+    const completePanel = document.getElementById("complete-panel");
+    const entryForm = document.getElementById("entry-form");
+    const judgeField = document.getElementById("judge-field");
+    const judgeCodeInput = document.getElementById("judge-code");
+    const entryError = document.getElementById("entry-error");
+    const ratingGrid = document.getElementById("rating-grid");
+    const nextButton = document.getElementById("next-button");
+    const previousButton = document.getElementById("previous-button");
+    let voter = null;
+    let currentIndex = 0;
+    let votesByVoter = readVotes();
+
+    function readVotes() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function writeVotes() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(votesByVoter));
+    }
+
+    function selectedRole() {
+      return entryForm.querySelector('input[name="role"]:checked').value;
+    }
+
+    function voterKey(name, role) {
+      return `${role}:${name.trim().toLocaleLowerCase("he")}`;
+    }
+
+    function showEntryError(message) {
+      entryError.textContent = message;
+    }
+
+    document.querySelectorAll('input[name="role"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        const isJudge = selectedRole() === "judge";
+        judgeField.hidden = !isJudge;
+        judgeCodeInput.required = isJudge;
+        showEntryError("");
+      });
+    });
+
+    entryForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const name = document.getElementById("voter-name").value.trim();
+      const role = selectedRole();
+      if (!name) {
+        showEntryError("נא להזין שם כדי להמשיך.");
+        document.getElementById("voter-name").focus();
+        return;
+      }
+      if (role === "judge" && judgeCodeInput.value !== DEMO_JUDGE_CODE) {
+        showEntryError("קוד השופט/ת אינו נכון.");
+        judgeCodeInput.focus();
+        return;
+      }
+
+      const key = voterKey(name, role);
+      voter = votesByVoter[key] || { name, role, votes: {} };
+      voter.name = name;
+      voter.role = role;
+      voter.votes ||= {};
+      currentIndex = Math.min(voter.nextIndex || 0, projects.length - 1);
+      showEntryError("");
+      entryPanel.hidden = true;
+      completePanel.hidden = true;
+      votePanel.hidden = false;
+      renderProject();
+    });
+
+    function renderProject() {
+      const project = projects[currentIndex];
+      const savedRating = voter.votes[project.id] || null;
+      document.getElementById("voter-display").textContent = voter.name;
+      document.getElementById("avatar-mark").textContent = voter.name.slice(0, 1);
+      document.getElementById("role-display").textContent = voter.role === "judge" ? "חבר/ת צוות השופטים" : "קהל";
+      document.getElementById("weight-display").textContent = `שופטים ${JUDGE_WEIGHT_PERCENT}% · קהל ${AUDIENCE_WEIGHT_PERCENT}%`;
+      document.getElementById("progress-label").textContent = `מציג/ה ${currentIndex + 1} מתוך ${projects.length}`;
+      document.getElementById("progress-count").textContent = `${Object.keys(voter.votes).length} דורגו`;
+      document.getElementById("progress-fill").style.width = `${(Object.keys(voter.votes).length / projects.length) * 100}%`;
+      document.getElementById("project-kicker").textContent = `מציג/ה ${String(currentIndex + 1).padStart(2, "0")}`;
+      document.getElementById("project-title").textContent = project.title;
+      document.getElementById("project-description").textContent = project.description;
+      ratingGrid.replaceChildren();
+
+      for (let score = 1; score <= 10; score += 1) {
+        const button = document.createElement("button");
+        button.className = "rating-button";
+        button.type = "button";
+        button.textContent = String(score);
+        button.setAttribute("aria-label", `ציון ${score}`);
+        button.setAttribute("aria-pressed", String(savedRating === score));
+        button.addEventListener("click", () => {
+          voter.votes[project.id] = score;
+          voter.nextIndex = currentIndex;
+          votesByVoter[voterKey(voter.name, voter.role)] = voter;
+          writeVotes();
+          renderProject();
+          ratingGrid.querySelector(`[aria-label="ציון ${score}"]`)?.focus();
+        });
+        ratingGrid.append(button);
+      }
+
+      previousButton.disabled = currentIndex === 0;
+      nextButton.disabled = !savedRating;
+      const isLastProject = currentIndex === projects.length - 1;
+      nextButton.innerHTML = isLastProject ? 'סיום ההצבעה <span class="button-arrow" aria-hidden="true">←</span>' : 'שמרו והמשיכו <span class="button-arrow" aria-hidden="true">←</span>';
+    }
+
+    previousButton.addEventListener("click", () => {
+      if (currentIndex > 0) {
+        currentIndex -= 1;
+        renderProject();
+      }
+    });
+
+    nextButton.addEventListener("click", () => {
+      if (!voter.votes[projects[currentIndex].id]) return;
+      if (currentIndex < projects.length - 1) {
+        currentIndex += 1;
+        voter.nextIndex = currentIndex;
+        votesByVoter[voterKey(voter.name, voter.role)] = voter;
+        writeVotes();
+        renderProject();
+        return;
+      }
+      showCompletion();
+    });
+
+    function showCompletion() {
+      votePanel.hidden = true;
+      completePanel.hidden = false;
+      document.getElementById("complete-message").textContent = `הדירוג של ${voter.name} נשמר בדפדפן הזה. תודה שהקדשת זמן לכל ${projects.length} המציגים.`;
+      const receipt = document.getElementById("receipt");
+      receipt.replaceChildren();
+      const summary = [
+        ["סוג מצביע/ת", voter.role === "judge" ? "שופט/ת" : "קהל"],
+        ["מספר מציגים", String(projects.length)],
+        ["משקל התוצאות", `שופטים ${JUDGE_WEIGHT_PERCENT}% · קהל ${AUDIENCE_WEIGHT_PERCENT}%`]
+      ];
+      summary.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "receipt-row";
+        const labelNode = document.createElement("span");
+        const valueNode = document.createElement("strong");
+        labelNode.textContent = label;
+        valueNode.textContent = value;
+        row.append(labelNode, valueNode);
+        receipt.append(row);
+      });
+    }
+
+    document.getElementById("return-button").addEventListener("click", () => {
+      voter = null;
+      currentIndex = 0;
+      entryForm.reset();
+      judgeField.hidden = true;
+      judgeCodeInput.required = false;
+      judgeCodeInput.value = "";
+      entryError.textContent = "";
+      completePanel.hidden = true;
+      entryPanel.hidden = false;
+      document.getElementById("voter-name").focus();
+    });
+  </script>
+</body>
+</html>
