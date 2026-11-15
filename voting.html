@@ -97,6 +97,32 @@
       animation: rise-in .55s ease-out both;
     }
 
+    .tool-logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 24px auto 0;
+    }
+
+    .tool-logo {
+      display: flex;
+      min-height: 54px;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 14px;
+      color: #e8edff;
+      background: rgba(11,20,64,.55);
+      direction: ltr;
+      font-size: .88rem;
+      font-weight: 800;
+    }
+
+    .tool-logo img { width: 34px; height: 34px; object-fit: contain; }
+    .tool-logo .copilot-logo { width: 48px; height: 32px; }
+
     .eyebrow {
       display: inline-flex;
       align-items: center;
@@ -414,6 +440,10 @@
       .competition-tag { max-width: 132px; font-size: .72rem; }
       .hero { margin-top: 42px; }
       .hero p { font-size: .95rem; }
+      .tool-logos { flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+      .tool-logo { min-height: 48px; padding: 6px 10px; font-size: .82rem; }
+      .tool-logo img { width: 30px; height: 30px; }
+      .tool-logo .copilot-logo { width: 44px; height: 30px; }
       h1 { font-size: 2rem; }
       main { width: min(100% - 22px, 920px); margin-top: -38px; }
       .demo-notice { padding: 12px 13px; font-size: .84rem; }
@@ -455,6 +485,10 @@
       <span class="eyebrow">הבחירה בידיים שלכם</span>
       <h1>נותנים במה לחדשנות</h1>
       <p>מדרגים מציג/ה אחד/ת בכל פעם. כל ציון מותר לשימוש חוזר.</p>
+      <div class="tool-logos" aria-label="כלי התחרות">
+        <div class="tool-logo"><img src="VS CODE.png" alt=""><span>VS Code</span></div>
+        <div class="tool-logo"><img class="copilot-logo" src="GitHub-Copilot-logo-1040x650.png" alt=""><span>GitHub Copilot</span></div>
+      </div>
     </div>
   </header>
 
