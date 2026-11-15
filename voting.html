@@ -352,6 +352,7 @@
 
     .results-panel { margin-top: 16px; }
     .results-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+    .results-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .results-header h2 { margin: 0 0 4px; color: var(--navy); font-size: 1.45rem; font-weight: 900; }
     .results-header p { margin: 0; color: var(--muted); font-size: .9rem; }
     .results-status { min-height: 24px; margin: 12px 0; color: var(--muted); font-size: .88rem; }
@@ -362,6 +363,32 @@
     .results-table td { color: #424a60; font-variant-numeric: tabular-nums; }
     .results-table tbody tr:last-child td { border-bottom: 0; }
     .results-table td:first-child { color: var(--navy); font-weight: 800; }
+
+    .danger-button {
+      display: inline-flex;
+      min-height: 50px;
+      align-items: center;
+      justify-content: center;
+      padding: 11px 16px;
+      border: 1px solid #d6a5af;
+      border-radius: 10px;
+      color: var(--danger);
+      background: var(--white);
+      font-weight: 900;
+    }
+
+    .danger-button:hover:not(:disabled) { background: #fff0f2; }
+    .danger-button:disabled { cursor: not-allowed; opacity: .6; }
+    .reset-dialog { width: min(100% - 32px, 440px); padding: 0; border: 0; border-radius: 16px; color: var(--ink); box-shadow: 0 24px 70px rgba(0,0,0,.35); }
+    .reset-dialog::backdrop { background: rgba(6,11,34,.72); }
+    .reset-dialog-content { padding: 24px; }
+    .reset-dialog h2 { margin: 0 0 8px; color: var(--navy); font-size: 1.35rem; }
+    .reset-dialog p { margin: 0 0 16px; color: var(--muted); line-height: 1.6; }
+    .reset-dialog label { display: block; margin-bottom: 6px; color: var(--navy); font-weight: 800; }
+    .reset-dialog input { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid #c9cfdb; border-radius: 8px; direction: ltr; text-align: left; }
+    .reset-dialog input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+    .reset-dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .reset-dialog-actions button { flex: 1 1 140px; }
 
     .small-link {
       padding: 8px 10px;
@@ -530,7 +557,10 @@
             <h2 id="results-title">תוצאות ההצבעה</h2>
             <p>ממוצע הקהל 40% · ממוצע השופטים 60%</p>
           </div>
-          <button class="secondary-button" id="refresh-results" type="button">רענון תוצאות</button>
+          <div class="results-actions">
+            <button class="secondary-button" id="refresh-results" type="button">רענון תוצאות</button>
+            <button class="danger-button" id="open-reset-dialog" type="button">איפוס כל ההצבעות</button>
+          </div>
         </div>
         <p class="results-status" id="results-status" role="status" aria-live="polite">טוען תוצאות...</p>
         <div class="results-table-wrap">
@@ -550,6 +580,19 @@
         </div>
       </div>
     </section>
+    <dialog id="reset-dialog" class="reset-dialog" aria-labelledby="reset-dialog-title">
+      <form id="reset-votes-form" class="reset-dialog-content">
+        <h2 id="reset-dialog-title">איפוס כל ההצבעות</h2>
+        <p>פעולה זו תמחק לצמיתות את כל דירוגי הקהל והשופטים. רשימת המציגים לא תימחק.</p>
+        <label for="reset-password">סיסמת מנהל</label>
+        <input id="reset-password" name="password" type="password" autocomplete="current-password" minlength="32" required>
+        <p class="form-error" id="reset-error" role="alert" aria-live="polite"></p>
+        <div class="reset-dialog-actions">
+          <button class="secondary-button" id="cancel-reset" type="button">ביטול</button>
+          <button class="danger-button" id="confirm-reset" type="submit">מחק את כל ההצבעות</button>
+        </div>
+      </form>
+    </dialog>
     <p class="footer-note">תחרות ה-AI · מחלקת Dielectric · <a href="#results-panel">תוצאות</a> · <a href="index.html">לעמוד התחרות</a></p>
   </main>
 
@@ -574,6 +617,11 @@
     const resultsBody = document.getElementById("results-body");
     const resultsStatus = document.getElementById("results-status");
     const refreshResultsButton = document.getElementById("refresh-results");
+    const resetDialog = document.getElementById("reset-dialog");
+    const resetForm = document.getElementById("reset-votes-form");
+    const resetPasswordInput = document.getElementById("reset-password");
+    const resetError = document.getElementById("reset-error");
+    const confirmResetButton = document.getElementById("confirm-reset");
     let voter = null;
     let currentIndex = 0;
     let selectedScore = null;
@@ -596,6 +644,32 @@
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(result.message || result.error || `שגיאת שרת (${response.status}).`);
+      }
+      return result;
+    }
+
+    async function resetAllVotes(password) {
+      const baseUrl = (supabaseConfig.url || "").replace(/\/$/, "");
+      const publishableKey = supabaseConfig.publishableKey || "";
+      if (!baseUrl.startsWith("https://") || !publishableKey || publishableKey.includes("YOUR_")) {
+        throw new Error("Supabase עדיין לא הוגדר. יש להוסיף Project URL ו-publishable key לקובץ התצורה.");
+      }
+
+      const response = await fetch(`${baseUrl}/functions/v1/reset-votes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: publishableKey,
+          Authorization: `Bearer ${publishableKey}`
+        },
+        body: JSON.stringify({ password })
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.error || `שגיאת שרת (${response.status}).`);
+      }
+      if (!Number.isInteger(result?.deletedCount)) {
+        throw new Error("השרת החזיר תשובה לא תקינה. יש לרענן ולבדוק את התוצאות.");
       }
       return result;
     }
@@ -659,6 +733,35 @@
     }
 
     refreshResultsButton.addEventListener("click", loadResults);
+    document.getElementById("open-reset-dialog").addEventListener("click", () => {
+      resetPasswordInput.value = "";
+      resetError.textContent = "";
+      resetDialog.showModal();
+      resetPasswordInput.focus();
+    });
+    document.getElementById("cancel-reset").addEventListener("click", () => resetDialog.close());
+    resetForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      confirmResetButton.disabled = true;
+      resetError.textContent = "";
+      try {
+        await resetAllVotes(resetPasswordInput.value);
+        resetPasswordInput.value = "";
+        resetDialog.close();
+        if (voter) {
+          returnToEntry();
+        }
+        await loadResults();
+        resultsStatus.textContent = "כל ההצבעות נמחקו. ניתן להתחיל הצבעה חדשה.";
+        document.getElementById("open-reset-dialog").focus();
+      } catch (error) {
+        resetPasswordInput.value = "";
+        resetError.textContent = error.message;
+        resetPasswordInput.focus();
+      } finally {
+        confirmResetButton.disabled = false;
+      }
+    });
 
     document.querySelectorAll('input[name="role"]').forEach((input) => {
       input.addEventListener("change", () => {
@@ -801,7 +904,7 @@
       });
     }
 
-    document.getElementById("return-button").addEventListener("click", () => {
+    function returnToEntry() {
       voter = null;
       currentIndex = 0;
       selectedScore = null;
@@ -815,7 +918,9 @@
       entryPanel.hidden = false;
       entrySubmit.disabled = !projects.length;
       document.getElementById("voter-name").focus();
-    });
+    }
+
+    document.getElementById("return-button").addEventListener("click", returnToEntry);
 
     loadPresenters();
     loadResults();
