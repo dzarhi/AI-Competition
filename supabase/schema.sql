@@ -14,7 +14,8 @@ insert into public.presenters (id, name, sort_order) values
   ('project-04', 'Dor Yosef', 4),
   ('project-05', 'Elias Khoury', 5),
   ('project-06', 'Roshdy Abu Alteef', 6),
-  ('project-07', 'אלכס רויף', 7)
+  ('project-07', 'Alex Roif', 7),
+  ('project-08', 'Oren Chaldkeas', 8)
 on conflict (id) do update
 set name = excluded.name,
     sort_order = excluded.sort_order,
