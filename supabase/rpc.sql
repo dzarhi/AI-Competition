@@ -6,6 +6,14 @@ create table if not exists public.judge_access (
 alter table public.judge_access enable row level security;
 revoke all on public.judge_access from anon, authenticated;
 
+create table if not exists public.results_access (
+  singleton boolean primary key default true check (singleton),
+  code text not null check (char_length(btrim(code)) >= 16)
+);
+
+alter table public.results_access enable row level security;
+revoke all on public.results_access from public, anon, authenticated;
+
 create or replace function public.list_presenters()
 returns table (id text, name text, sort_order integer)
 language sql
@@ -104,7 +112,9 @@ exception
 end;
 $$;
 
-create or replace function public.get_results()
+drop function if exists public.get_results();
+
+create or replace function public.get_results(p_results_code text)
 returns table (
   presenter_id text,
   presenter_name text,
@@ -114,11 +124,19 @@ returns table (
   judge_average numeric,
   weighted_score numeric
 )
-language sql
+language plpgsql
 stable
 security definer
 set search_path = pg_catalog, public
 as $$
+begin
+  if p_results_code is null or not exists (
+    select 1 from public.results_access where singleton and code = p_results_code
+  ) then
+    raise exception using errcode = '42501', message = 'Results access code is invalid.';
+  end if;
+
+  return query
   with aggregates as (
     select
       p.id,
@@ -133,31 +151,37 @@ as $$
     group by p.id, p.name, p.sort_order
   )
   select
-    id,
-    name,
-    audience_count,
-    audience_average,
-    judge_count,
-    judge_average,
-    case when audience_average is not null and judge_average is not null
-      then audience_average * 0.4 + judge_average * 0.6
+    a.id,
+    a.name,
+    a.audience_count,
+    a.audience_average,
+    a.judge_count,
+    a.judge_average,
+    case when a.audience_average is not null and a.judge_average is not null
+      then a.audience_average * 0.4 + a.judge_average * 0.6
       else null
     end as weighted_score
-  from aggregates
-  order by weighted_score desc nulls last, name;
+  from aggregates as a
+  order by a.weighted_score desc nulls last, a.name;
+end;
 $$;
 
 revoke all on function public.list_presenters() from public, anon, authenticated;
 revoke all on function public.get_my_votes(text, text, text) from public, anon, authenticated;
 revoke all on function public.submit_vote(text, text, text, text, integer) from public, anon, authenticated;
-revoke all on function public.get_results() from public, anon, authenticated;
+revoke all on function public.get_results(text) from public, anon, authenticated;
 
 grant execute on function public.list_presenters() to anon, authenticated;
 grant execute on function public.get_my_votes(text, text, text) to anon, authenticated;
 grant execute on function public.submit_vote(text, text, text, text, integer) to anon, authenticated;
-grant execute on function public.get_results() to anon, authenticated;
+grant execute on function public.get_results(text) to anon, authenticated;
 
 -- Replace the placeholder with a private judge code in the SQL Editor before running this insert.
 -- insert into public.judge_access (singleton, code)
 -- values (true, 'REPLACE_WITH_A_PRIVATE_JUDGE_CODE')
+-- on conflict (singleton) do update set code = excluded.code;
+
+-- Set a separate, private code for viewing results in the SQL Editor.
+-- insert into public.results_access (singleton, code)
+-- values (true, 'REPLACE_WITH_A_PRIVATE_RESULTS_CODE')
 -- on conflict (singleton) do update set code = excluded.code;

@@ -5,7 +5,7 @@ The existing GitHub Pages voting UI stores votes in Supabase through SQL RPCs. T
 ## Setup
 
 1. Create a Supabase project.
-2. In the Supabase SQL Editor, run `schema.sql`, then `rpc.sql`. The schema seeds the presenter roster, creates the votes table and duplicate-vote constraint, and enables row-level security. The RPC script exposes only the intended operations to the browser.
+2. In the Supabase SQL Editor, run `schema.sql`, then `rpc.sql`. The schema seeds the presenter roster, creates the votes table and duplicate-vote constraint, and enables row-level security. The RPC script exposes only the intended operations to the browser. If the project is already configured, run the updated `rpc.sql` to remove the old public, no-code results function.
 3. Generate a private judge code of at least 16 characters. In the SQL Editor, replace the placeholder and run:
 
    ```sql
@@ -15,21 +15,28 @@ The existing GitHub Pages voting UI stores votes in Supabase through SQL RPCs. T
    ```
 
    Share the code with judges privately. Do not put it in the website or commit it to the repository.
-4. Set `url` and `publishableKey` in the local `supabase-config.js` from the Supabase project's API settings. This file is intended to be published with the site.
-5. In Supabase Dashboard, add an `ADMIN_RESET_PASSWORD` Edge Function secret with a randomly generated password of at least 32 characters. Keep it private; do not put it in `supabase-config.js` or commit it.
-6. Deploy the reset function with JWT verification disabled (it authenticates the reset request using the private password):
+4. Generate a separate, private, randomly generated results-access code of at least 16 characters. In the SQL Editor, run the following with your private code in place of the placeholder. Do not put this code in the website or commit it.
+
+   ```sql
+   insert into public.results_access (singleton, code)
+   values (true, 'REPLACE_WITH_A_PRIVATE_RESULTS_CODE')
+   on conflict (singleton) do update set code = excluded.code;
+   ```
+5. Set `url` and `publishableKey` in the local `supabase-config.js` from the Supabase project's API settings. This file is intended to be published with the site.
+6. In Supabase Dashboard, add an `ADMIN_RESET_PASSWORD` Edge Function secret with a randomly generated password of at least 32 characters. Keep it private; do not put it in `supabase-config.js` or commit it.
+7. Deploy the reset function with JWT verification disabled (it authenticates the reset request using the private password):
 
    ```sh
    supabase functions deploy reset-votes --project-ref ialphxylbjouynilanqu --no-verify-jwt
    ```
 
-7. Publish `voting.html` and `supabase-config.js` to the GitHub Pages branch, then test the deployed page.
+8. Publish `voting.html` and `supabase-config.js` to the GitHub Pages branch, then test the deployed page.
 
 The results panel includes an **איפוס כל ההצבעות** button. It prompts for the administrator password and clears only the `votes` table. The password is checked by the Edge Function and is never stored in the website or returned in responses. Use a unique, high-entropy password and keep it in a password manager.
 
 ## Behavior and limits
 
-- The public page loads presenters, checks a voter's existing votes, saves one vote per presenter and role, and shows public results through `list_presenters`, `get_my_votes`, `submit_vote`, and `get_results`.
+- The public page loads presenters, checks a voter's existing votes, and saves one vote per presenter and role through `list_presenters`, `get_my_votes`, and `submit_vote`. Results are returned by `get_results` only after the separate results-access code is validated server-side.
 - The weighted score is 40% audience average and 60% judge average. It remains blank until both groups have votes for a presenter.
 - Voter names are typed, not authenticated identities. The unique constraint prevents duplicate votes for the same typed name, role, and presenter, but cannot prevent name impersonation.
 - The judge code gates access to the judge role; it does not authenticate a judge's personal identity.

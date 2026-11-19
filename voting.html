@@ -589,28 +589,42 @@
         <div class="results-header">
           <div>
             <h2 id="results-title">תוצאות ההצבעה</h2>
-            <p>ממוצע הקהל 40% · ממוצע השופטים 60%</p>
-          </div>
-          <div class="results-actions">
-            <button class="secondary-button" id="refresh-results" type="button">רענון תוצאות</button>
-            <button class="danger-button" id="open-reset-dialog" type="button">איפוס כל ההצבעות</button>
+            <p id="results-description">להצגת התוצאות, הזינו את קוד הגישה שקיבלתם</p>
           </div>
         </div>
-        <p class="results-status" id="results-status" role="status" aria-live="polite">טוען תוצאות...</p>
-        <div class="results-table-wrap">
-          <table class="results-table">
-            <thead>
-              <tr>
-                <th scope="col">מציג/ה</th>
-                <th scope="col">הצבעות קהל</th>
-                <th scope="col">ממוצע קהל</th>
-                <th scope="col">הצבעות שופטים</th>
-                <th scope="col">ממוצע שופטים</th>
-                <th scope="col">ציון משוקלל</th>
-              </tr>
-            </thead>
-            <tbody id="results-body"></tbody>
-          </table>
+        <div id="results-access">
+          <form id="results-access-form" novalidate>
+            <div class="field full">
+              <label class="field-label" for="results-access-code">קוד גישה לתוצאות</label>
+              <input class="text-input" id="results-access-code" name="resultsCode" type="password" autocomplete="off" required>
+            </div>
+            <p class="form-error" id="results-access-error" role="alert" aria-live="polite"></p>
+            <button class="primary-button entry-submit" id="results-access-submit" type="submit">הצגת התוצאות <span aria-hidden="true">←</span></button>
+          </form>
+        </div>
+        <div id="results-content" hidden>
+          <div class="results-header">
+            <div class="results-actions">
+              <button class="secondary-button" id="refresh-results" type="button">רענון תוצאות</button>
+              <button class="danger-button" id="open-reset-dialog" type="button">איפוס כל ההצבעות</button>
+            </div>
+          </div>
+          <p class="results-status" id="results-status" role="status" aria-live="polite">התוצאות ייטענו לאחר אימות קוד הגישה.</p>
+          <div class="results-table-wrap">
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th scope="col">מציג/ה</th>
+                  <th scope="col">הצבעות קהל</th>
+                  <th scope="col">ממוצע קהל</th>
+                  <th scope="col">הצבעות שופטים</th>
+                  <th scope="col">ממוצע שופטים</th>
+                  <th scope="col">ציון משוקלל</th>
+                </tr>
+              </thead>
+              <tbody id="results-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
@@ -648,6 +662,13 @@
     const nextButton = document.getElementById("next-button");
     const entrySubmit = document.getElementById("entry-submit");
     const connectionStatus = document.getElementById("connection-status");
+    const resultsAccess = document.getElementById("results-access");
+    const resultsAccessForm = document.getElementById("results-access-form");
+    const resultsAccessCodeInput = document.getElementById("results-access-code");
+    const resultsAccessError = document.getElementById("results-access-error");
+    const resultsAccessSubmit = document.getElementById("results-access-submit");
+    const resultsContent = document.getElementById("results-content");
+    const resultsDescription = document.getElementById("results-description");
     const resultsBody = document.getElementById("results-body");
     const resultsStatus = document.getElementById("results-status");
     const refreshResultsButton = document.getElementById("refresh-results");
@@ -659,6 +680,7 @@
     let voter = null;
     let currentIndex = 0;
     let selectedScore = null;
+    let resultsAccessCode = null;
 
     async function callSupabaseRpc(functionName, payload = {}) {
       const baseUrl = (supabaseConfig.url || "").replace(/\/$/, "");
@@ -735,11 +757,16 @@
       }
     }
 
-    async function loadResults() {
+    async function loadResults(accessCode) {
+      const code = accessCode || resultsAccessCode;
+      if (!code) {
+        return false;
+      }
+
       refreshResultsButton.disabled = true;
       resultsStatus.textContent = "טוען תוצאות...";
       try {
-        const results = await callSupabaseRpc("get_results");
+        const results = await callSupabaseRpc("get_results", { p_results_code: code });
         resultsBody.replaceChildren();
         results.forEach((result) => {
           const row = document.createElement("tr");
@@ -759,14 +786,47 @@
           resultsBody.append(row);
         });
         resultsStatus.textContent = results.length ? "התוצאות עודכנו." : "אין מציגים להצגה.";
+        resultsAccessCode = code;
+        return true;
       } catch (error) {
-        resultsStatus.textContent = `לא ניתן לטעון תוצאות: ${error.message}`;
+        if (resultsAccess.hidden) {
+          resultsStatus.textContent = `לא ניתן לטעון תוצאות: ${error.message}`;
+        } else {
+          resultsAccessError.textContent = `לא ניתן לאמת את הקוד: ${error.message}`;
+        }
+        return false;
       } finally {
         refreshResultsButton.disabled = false;
       }
     }
 
-    refreshResultsButton.addEventListener("click", loadResults);
+    resultsAccessForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      resultsAccessError.textContent = "";
+      const accessCode = resultsAccessCodeInput.value.trim();
+      if (!accessCode) {
+        resultsAccessError.textContent = "יש להזין קוד גישה לתוצאות.";
+        resultsAccessCodeInput.focus();
+        return;
+      }
+
+      resultsAccessSubmit.disabled = true;
+      try {
+        if (await loadResults(accessCode)) {
+          resultsAccessCodeInput.value = "";
+          resultsAccess.hidden = true;
+          resultsContent.hidden = false;
+          resultsDescription.textContent = "ממוצע הקהל 40% · ממוצע השופטים 60%";
+        } else {
+          resultsAccessCodeInput.value = "";
+          resultsAccessCodeInput.focus();
+        }
+      } finally {
+        resultsAccessSubmit.disabled = false;
+      }
+    });
+
+    refreshResultsButton.addEventListener("click", () => loadResults());
     document.getElementById("open-reset-dialog").addEventListener("click", () => {
       resetPasswordInput.value = "";
       resetError.textContent = "";
@@ -785,8 +845,9 @@
         if (voter) {
           returnToEntry();
         }
-        await loadResults();
-        resultsStatus.textContent = "כל ההצבעות נמחקו. ניתן להתחיל הצבעה חדשה.";
+        if (await loadResults()) {
+          resultsStatus.textContent = "כל ההצבעות נמחקו. ניתן להתחיל הצבעה חדשה.";
+        }
         document.getElementById("open-reset-dialog").focus();
       } catch (error) {
         resetPasswordInput.value = "";
@@ -957,7 +1018,6 @@
     document.getElementById("return-button").addEventListener("click", returnToEntry);
 
     loadPresenters();
-    loadResults();
   </script>
 </body>
 </html>
