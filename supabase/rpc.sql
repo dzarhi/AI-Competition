@@ -162,7 +162,12 @@ begin
       else null
     end as weighted_score
   from aggregates as a
-  order by a.weighted_score desc nulls last, a.name;
+  order by
+    case when a.audience_average is not null and a.judge_average is not null
+      then a.audience_average * 0.4 + a.judge_average * 0.6
+      else null
+    end desc nulls last,
+    a.name;
 end;
 $$;
 
